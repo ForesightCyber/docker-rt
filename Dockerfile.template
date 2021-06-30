@@ -21,6 +21,7 @@ RUN ./configure \
     --enable-gd \
     --enable-graphviz \
     --with-db-type=SQLite \
+    --with-db-type=Postgresql \
   && make install \
   && make initdb \
   && rm -rf /usr/local/src/*

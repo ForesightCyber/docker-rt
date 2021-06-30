@@ -2,6 +2,8 @@ ARG IMAGE=netsandbox/request-tracker-base
 ARG TAG=latest
 FROM ${IMAGE}:${TAG}
 
+EXPOSE 80
+
 LABEL maintainer="Christian Loos <cloos@netsandbox.de>"
 LABEL org.opencontainers.image.source="https://github.com/netsandbox/docker-rt"
 
@@ -13,6 +15,10 @@ RUN curl -sSL "https://download.bestpractical.com/pub/rt/release/rt-5.0.1.tar.gz
   && tar -xzf rt.tar.gz
 
 WORKDIR /usr/local/src/rt-5.0.1
+RUN perl -MCPAN -e shell </dev/null
+RUN sed -i "s/buster /testing /g" /etc/apt/sources.list
+RUN apt update
+RUN apt install -y libdbd-pgsql libdbd-pg-perl libdbix-searchbuilder-perl libpath-dispatcher-perl 
 RUN ./configure \
     --disable-gpg \
     --disable-smime \
@@ -20,16 +26,18 @@ RUN ./configure \
     --enable-externalauth \
     --enable-gd \
     --enable-graphviz \
-    --with-db-type=SQLite \
+    --with-db-type=Pg \
+  && make fixdeps \
   && make install \
-  && make initdb \
-  && rm -rf /usr/local/src/*
+  && rm -rf /usr/local/src/* \
+  && apt clean
 
 COPY apache.rt.conf /etc/apache2/sites-available/000-default.conf
 COPY RT_SiteConfig.pm /opt/rt5/etc/RT_SiteConfig.pm
 COPY docker-entrypoint.sh /usr/local/bin/
 
 RUN chown -R www-data:www-data /opt/rt5/var/
+RUN chown -R www-data:www-data /opt/rt5/etc/
 
 VOLUME /opt/rt5
 
