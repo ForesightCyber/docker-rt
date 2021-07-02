@@ -43,4 +43,4 @@ VOLUME /opt/rt5
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-CMD ["apache2-foreground"]
+CMD ["/opt/rt5/sbin/rt-server", "--port", "80", "--webpath", "/rt"]
