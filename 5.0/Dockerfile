@@ -9,6 +9,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /usr/local/src
 # hadolint ignore=DL3003,SC2174
+RUN apt update \
+  && apt -y install libpq-dev
+  
 RUN curl -fsSL "https://download.bestpractical.com/pub/rt/release/rt-5.0.2.tar.gz" -o rt.tar.gz \
   && echo "df915ae809277564d9b8a7192ced2517cf6bed6c0301786b69562c0ea9dd9e86  rt.tar.gz" | sha256sum -c \
   && tar -xzf rt.tar.gz \
@@ -22,10 +25,10 @@ RUN curl -fsSL "https://download.bestpractical.com/pub/rt/release/rt-5.0.2.tar.g
     --enable-smime \
     --with-db-type=Pg \
     --with-web-handler=standalone \
+  && PERL_MM_USE_DEFAULT=1 perl -MCPAN -e shell \
   && make fixdeps \
   && make install \
   && mkdir --mode=0600 --parents /opt/rt5/var/data/{gpg,smime} \
-  && make initialize-database \
   && cd .. && rm -rf /usr/local/src/* \
   && apt clean
 
